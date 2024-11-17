@@ -2,7 +2,6 @@
 
 ![TaskFlow Pro Banner](Final.jpg)
 
-
 ## 🌟 Overview
 
 TaskFlow Pro is a modern, feature-rich task management application built with vanilla JavaScript, utilizing advanced CSS animations and a responsive design. This project demonstrates proficiency in front-end development while providing a practical and visually appealing solution for task management.
@@ -39,10 +38,6 @@ TaskFlow Pro is a modern, feature-rich task management application built with va
   - Bulk actions (clear completed)
   - Data backup and restore
 
-## 🚀 Live Demo
-
-Check out the live demo: [TaskFlow Pro Demo](your-demo-link-here)
-
 ## 🛠️ Technologies Used
 
 - HTML5
@@ -50,12 +45,6 @@ Check out the live demo: [TaskFlow Pro Demo](your-demo-link-here)
 - JavaScript (ES6+)
 - Local Storage API
 - Font Awesome Icons
-
-## 📋 Prerequisites
-
-- Modern web browser (Chrome, Firefox, Safari, Edge)
-- Text editor (VS Code, Sublime Text, etc.)
-- Basic understanding of HTML, CSS, and JavaScript
 
 ## 🤝 Contributing
 
@@ -74,13 +63,6 @@ Check out the live demo: [TaskFlow Pro Demo](your-demo-link-here)
 - [ ] Add task sharing capabilities
 - [ ] Implement task analytics and reporting
 - [ ] Add voice input for task creation
-
-
-## 👤 Author
-
-Your Name
-- GitHub: [@ishi2611]((https://github.com/ishi2611))
-- LinkedIn: [Ishika Adhikari](www.linkedin.com/in/ishika-adhikari-48222924b)
 
 ## 📈 Project Status
 
