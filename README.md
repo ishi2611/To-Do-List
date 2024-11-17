@@ -1,6 +1,6 @@
 # TaskFlow Pro - Advanced Task Management System
 
-![TaskFlow Pro Banner](https://github.com/ishika-adhikari/final/blob/main/taskflow-banner.png?raw=true)
+![TaskFlow Pro Banner](Final.jpg)
 
 
 ## 🌟 Overview
