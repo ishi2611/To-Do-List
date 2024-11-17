@@ -1,6 +1,7 @@
 # TaskFlow Pro - Advanced Task Management System
 
-![TaskFlow Pro Banner]()
+![TaskFlow Pro Banner](https://github.com/ishika-adhikari/final/blob/main/taskflow-banner.png?raw=true)
+
 
 ## 🌟 Overview
 
@@ -56,63 +57,6 @@ Check out the live demo: [TaskFlow Pro Demo](your-demo-link-here)
 - Text editor (VS Code, Sublime Text, etc.)
 - Basic understanding of HTML, CSS, and JavaScript
 
-## ⚙️ Installation & Setup
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/your-username/taskflow-pro.git
-   ```
-
-2. **Navigate to project directory**
-   ```bash
-   cd taskflow-pro
-   ```
-
-3. **Open in browser**
-   - Open `index.html` in your preferred browser
-   - Or use a local server:
-     ```bash
-     npx http-server
-     ```
-
-## 📱 Responsive Design
-
-TaskFlow Pro is fully responsive and works seamlessly across:
-- Desktop devices (1200px and above)
-- Tablets (768px to 1199px)
-- Mobile devices (below 768px)
-
-## 🎨 Features in Detail
-
-### Task Management
-```javascript
-// Add a new task
-const task = {
-    id: Date.now(),
-    text: "Task description",
-    category: "work",
-    priority: "high",
-    dueDate: "2024-11-20",
-    completed: false
-};
-```
-
-### Theme Customization
-```javascript
-// Toggle dark/light theme
-function toggleTheme() {
-    document.body.classList.toggle('dark-mode');
-}
-```
-
-### Data Persistence
-```javascript
-// Save tasks to local storage
-function saveTasks() {
-    localStorage.setItem('tasks', JSON.stringify(tasks));
-}
-```
-
 ## 🤝 Contributing
 
 1. Fork the repository
@@ -131,31 +75,12 @@ function saveTasks() {
 - [ ] Implement task analytics and reporting
 - [ ] Add voice input for task creation
 
-## 🔧 Troubleshooting
-
-Common issues and solutions:
-1. **Local Storage Not Working**
-   - Enable cookies and local storage in your browser
-   - Clear browser cache
-
-2. **Animations Not Smooth**
-   - Check browser compatibility
-   - Ensure hardware acceleration is enabled
-
-## 📜 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 👤 Author
 
 Your Name
-- GitHub: [@your-github-username](https://github.com/your-username)
-- LinkedIn: [Your Name](https://linkedin.com/in/your-profile)
-
-## 🙏 Acknowledgments
-
-- Font Awesome for the icons
-- [List other resources or inspirations]
+- GitHub: [@ishi2611]((https://github.com/ishi2611))
+- LinkedIn: [Ishika Adhikari](www.linkedin.com/in/ishika-adhikari-48222924b)
 
 ## 📈 Project Status
 
