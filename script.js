@@ -1,295 +1,309 @@
-var state = [];
-
-function setDefaultState() {
-  var id = generateID();
-  var baseState = {};
-  baseState[id] = {
-    status: "new",
-    id: id,
-    title: "This site uses 🍪to keep track of your tasks"
-  };
-  syncState(baseState);
-}
-
-function generateID() {
-  var randLetter = String.fromCharCode(65 + Math.floor(Math.random() * 26));
-  return randLetter + Date.now();
-}
-
-function pushToState(title, status, id) {
-  var baseState = getState();
-  baseState[id] = { id: id, title: title, status: status };
-  syncState(baseState);
-}
-
-function setToDone(id) {
-  var baseState = getState();
-  if (baseState[id].status === 'new') {
-    baseState[id].status = 'done'
-  } else {
-    baseState[id].status =  'new';
-  }
-
-  syncState(baseState);
-}
-
-function deleteTodo(id) {
-  console.log(id)
-  var baseState = getState();
-  delete baseState[id]
-  syncState(baseState)
-}
-
-function resetState() {
-  localStorage.setItem("state", null);
-}
-
-function syncState(state) {
-  localStorage.setItem("state", JSON.stringify(state));
-}
-
-function getState() {
-  return JSON.parse(localStorage.getItem("state"));
-}
-
-function addItem(text, status, id, noUpdate) {
-  var id = id ? id : generateID();
-  var c = status === "done" ? "danger" : "";
-  var item =
-    '<li data-id="' +
-    id +
-    '" class="animated flipInX ' +
-    c +
-    '"><div class="checkbox"><span class="close"><i class="fa fa-times"></i></span><label><span class="checkbox-mask"></span><input type="checkbox" />' +
-    text +
-    "</label></div></li>";
-
-  var isError = $(".form-control").hasClass("hidden");
-
-  if (text === "") {
-    $(".err")
-      .removeClass("hidden")
-      .addClass("animated bounceIn");
-  } else {
-    $(".err").addClass("hidden");
-    $(".todo-list").append(item);
-  }
-
-  $(".refresh").removeClass("hidden");
-
-  $(".no-items").addClass("hidden");
-
-  $(".form-control")
-    .val("")
-    .attr("placeholder", "✍️ Add item...");
-  setTimeout(function() {
-    $(".todo-list li").removeClass("animated flipInX");
-  }, 500);
-
-  if (!noUpdate) {
-    pushToState(text, "new", id);
-  }
-}
-
-function refresh() {
-  $(".todo-list li").each(function(i) {
-    $(this)
-      .delay(70 * i)
-      .queue(function() {
-        $(this).addClass("animated bounceOutLeft");
-        $(this).dequeue();
-      });
-  });
-
-  setTimeout(function() {
-    $(".todo-list li").remove();
-    $(".no-items").removeClass("hidden");
-    $(".err").addClass("hidden");
-  }, 800);
-}
-
-$(function() {
-  var err = $(".err"),
-    formControl = $(".form-control"),
-    isError = formControl.hasClass("hidden");
-
-  if (!isError) {
-    formControl.blur(function() {
-      err.addClass("hidden");
-    });
-  }
-
-  $(".add-btn").on("click", function() {
-    var itemVal = $(".form-control").val();
-    addItem(itemVal);
-    formControl.focus();
-  });
-
-  $(".refresh").on("click", refresh);
-
-  $(".todo-list").on("click", 'input[type="checkbox"]', function() {
-    var li = $(this)
-      .parent()
-      .parent()
-      .parent();
-    li.toggleClass("danger");
-    li.toggleClass("animated flipInX");
-
-    setToDone(li.data().id);
-
-    setTimeout(function() {
-      li.removeClass("animated flipInX");
-    }, 500);
-  });
-
-  $(".todo-list").on("click", ".close", function() {
-    var box = $(this)
-      .parent()
-      .parent();
-
-    if ($(".todo-list li").length == 1) {
-      box.removeClass("animated flipInX").addClass("animated                bounceOutLeft");
-      setTimeout(function() {
-        box.remove();
-        $(".no-items").removeClass("hidden");
-        $(".refresh").addClass("hidden");
-      }, 500);
-    } else {
-      box.removeClass("animated flipInX").addClass("animated bounceOutLeft");
-      setTimeout(function() {
-        box.remove();
-      }, 500);
+// Task Management Class
+class TaskManager {
+    constructor() {
+        this.tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        this.currentFilter = 'all';
+        this.searchQuery = '';
+        this.initializeEventListeners();
+        this.render();
+        this.updateStats();
     }
 
-    deleteTodo(box.data().id)
-  });
+    initializeEventListeners() {
+        // Add task
+        document.getElementById('addTask').addEventListener('click', () => this.addTask());
+        document.getElementById('taskInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.addTask();
+        });
 
-  $(".form-control").keypress(function(e) {
-    if (e.which == 13) {
-      var itemVal = $(".form-control").val();
-      addItem(itemVal);
+        // Search and filters
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            this.searchQuery = e.target.value.toLowerCase();
+            this.render();
+        });
+
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                this.currentFilter = e.target.dataset.filter;
+                this.render();
+            });
+        });
+
+        // Quick actions
+        document.getElementById('clearCompleted').addEventListener('click', () => this.clearCompleted());
+        document.getElementById('exportTasks').addEventListener('click', () => this.exportTasks());
+
+        // Theme toggle
+        document.querySelector('.theme-toggle').addEventListener('click', () => this.toggleTheme());
     }
-  });
-  $(".todo-list").sortable();
-  $(".todo-list").disableSelection();
-});
 
-var todayContainer = document.querySelector(".today");
+    addTask() {
+        const input = document.getElementById('taskInput');
+        const text = input.value.trim();
+        
+        if (text) {
+            const task = {
+                id: Date.now(),
+                text: text,
+                completed: false,
+                category: document.getElementById('categorySelect').value,
+                priority: document.getElementById('prioritySelect').value,
+                dueDate: document.getElementById('dueDate').value,
+                createdAt: new Date().toISOString(),
+                completedAt: null
+            };
 
-
-var d = new Date();
-
-
-var weekday = new Array(7);
-weekday[0] = "Sunday 🖖";
-weekday[1] = "Monday 💪😀";
-weekday[2] = "Tuesday 😜";
-weekday[3] = "Wednesday 😌☕️";
-weekday[4] = "Thursday 🤗";
-weekday[5] = "Friday 🍻";
-weekday[6] = "Saturday 😴";
-
-
-var n = weekday[d.getDay()];
-
-
-var randomWordArray = Array(
-  "Oh my, it's ",
-  "Whoop, it's ",
-  "Happy ",
-  "Seems it's ",
-  "Awesome, it's ",
-  "Have a nice ",
-  "Happy fabulous ",
-  "Enjoy your "
-);
-
-var randomWord =
-  randomWordArray[Math.floor(Math.random() * randomWordArray.length)];
-
-
-todayContainer.innerHTML = randomWord + n;
-
-$(document).ready(function() {
-  var state = getState();
-
-  if (!state) {
-    setDefaultState();
-    state = getState();
-  }
-
-  Object.keys(state).forEach(function(todoKey) {
-    var todo = state[todoKey];
-    addItem(todo.title, todo.status, todo.id, true);
-  });
-
-  var mins, secs, update;
-
-  init();
-  function init() {
-    (mins = 25), (secs = 59);
-  }
-
-
-  set();
-  function set() {
-    $(".mins").text(mins);
-  }
-
-
-  $("#start").on("click", start_timer);
-  $("#reset").on("click", reset);
-  $("#inc").on("click", inc);
-  $("#dec").on("click", dec);
-
-  function start_timer() {
-
-    set();
-
-    $(".dis").attr("disabled", true);
-
-    $(".mins").text(--mins);
-    $(".separator").text(":");
-    update_timer();
-
-    update = setInterval(update_timer, 1000);
-  }
-
-  function update_timer() {
-    $(".secs").text(secs);
-    --secs;
-    if (mins == 0 && secs < 0) {
-      reset();
-    } else if (secs < 0 && mins > 0) {
-      secs = 59;
-      --mins;
-      $(".mins").text(mins);
+            this.tasks.unshift(task);
+            this.saveTasks();
+            input.value = '';
+            this.showNotification('Task added successfully!');
+            this.animateTaskAddition();
+        }
     }
-  }
 
-
-  function reset() {
-    clearInterval(update);
-    $(".secs").text("");
-    $(".separator").text("");
-    init();
-    $(".mins").text(mins);
-    $(".dis").attr("disabled", false);
-  }
-
-
-  function inc() {
-    mins++;
-    $(".mins").text(mins);
-  }
-
-
-  function dec() {
-    if (mins > 1) {
-      mins--;
-      $(".mins").text(mins);
-    } else {
-      alert("This is the minimum limit.");
+    toggleTask(id) {
+        const task = this.tasks.find(t => t.id === id);
+        if (task) {
+            task.completed = !task.completed;
+            task.completedAt = task.completed ? new Date().toISOString() : null;
+            this.saveTasks();
+            this.showNotification(task.completed ? 'Task completed!' : 'Task reopened!');
+        }
     }
-  }
-});
+
+    deleteTask(id) {
+        const taskElement = document.querySelector(`[data-task-id="${id}"]`);
+        taskElement.style.transform = 'translateX(100px)';
+        taskElement.style.opacity = '0';
+        
+        setTimeout(() => {
+            this.tasks = this.tasks.filter(t => t.id !== id);
+            this.saveTasks();
+            this.showNotification('Task deleted!');
+        }, 300);
+    }
+
+    editTask(id) {
+        const task = this.tasks.find(t => t.id === id);
+        if (task) {
+            const newText = prompt('Edit task:', task.text);
+            if (newText && newText.trim()) {
+                task.text = newText.trim();
+                this.saveTasks();
+                this.showNotification('Task updated!');
+            }
+        }
+    }
+
+    clearCompleted() {
+        const completedCount = this.tasks.filter(t => t.completed).length;
+        if (completedCount === 0) {
+            this.showNotification('No completed tasks to clear!');
+            return;
+        }
+
+        if (confirm(`Are you sure you want to delete ${completedCount} completed tasks?`)) {
+            this.tasks = this.tasks.filter(t => !t.completed);
+            this.saveTasks();
+            this.showNotification('Completed tasks cleared!');
+        }
+    }
+
+    exportTasks() {
+        const dataStr = JSON.stringify(this.tasks, null, 2);
+        const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+        const exportFileDefaultName = 'tasks.json';
+
+        const linkElement = document.createElement('a');
+        linkElement.setAttribute('href', dataUri);
+        linkElement.setAttribute('download', exportFileDefaultName);
+        linkElement.click();
+        this.showNotification('Tasks exported successfully!');
+    }
+
+    toggleTheme() {
+        document.body.classList.toggle('dark-mode');
+        const isDarkMode = document.body.classList.contains('dark-mode');
+        localStorage.setItem('darkMode', isDarkMode);
+        this.showNotification(`${isDarkMode ? 'Dark' : 'Light'} mode activated!`);
+    }
+
+    updateStats() {
+        const totalTasks = this.tasks.length;
+        const completedTasks = this.tasks.filter(t => t.completed).length;
+        const productivity = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
+
+        document.getElementById('totalTasks').textContent = totalTasks;
+        document.getElementById('completedTasks').textContent = completedTasks;
+        document.getElementById('productivity').textContent = `${productivity}%`;
+    }
+
+    saveTasks() {
+        localStorage.setItem('tasks', JSON.stringify(this.tasks));
+        this.updateStats();
+        this.render();
+    }
+
+    filterTasks() {
+        let filteredTasks = [...this.tasks];
+
+        // Apply search filter
+        if (this.searchQuery) {
+            filteredTasks = filteredTasks.filter(task =>
+                task.text.toLowerCase().includes(this.searchQuery)
+            );
+        }
+
+        // Apply status filter
+        switch (this.currentFilter) {
+            case 'active':
+                filteredTasks = filteredTasks.filter(task => !task.completed);
+                break;
+            case 'completed':
+                filteredTasks = filteredTasks.filter(task => task.completed);
+                break;
+        }
+
+        return filteredTasks;
+    }
+
+    formatDate(dateString) {
+        if (!dateString) return '';
+        const options = { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+        return new Date(dateString).toLocaleDateString('en-US', options);
+    }
+
+    showNotification(message) {
+        const notification = document.createElement('div');
+        notification.className = 'notification';
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        
+        // Trigger animation
+        setTimeout(() => notification.classList.add('show'), 10);
+        
+        // Remove notification
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+
+    animateTaskAddition() {
+        const taskList = document.getElementById('taskList');
+        taskList.firstElementChild?.classList.add('task-added');
+        setTimeout(() => {
+            taskList.firstElementChild?.classList.remove('task-added');
+        }, 500);
+    }
+
+    render() {
+        const taskList = document.getElementById('taskList');
+        const filteredTasks = this.filterTasks();
+
+        if (filteredTasks.length === 0) {
+            taskList.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-tasks"></i>
+                    <p>No tasks found</p>
+                </div>
+            `;
+            return;
+        }
+
+        taskList.innerHTML = filteredTasks.map((task, index) => `
+            <div class="task-item ${task.completed ? 'completed' : ''}" 
+                 data-task-id="${task.id}"
+                 style="animation-delay: ${index * 0.1}s">
+                <div class="task-checkbox ${task.completed ? 'checked' : ''}"
+                     onclick="taskManager.toggleTask(${task.id})">
+                    ${task.completed ? '<i class="fas fa-check"></i>' : ''}
+                </div>
+                <div class="task-content">
+                    <div class="task-title">${task.text}</div>
+                    <div class="task-meta">
+                        <span class="task-category">
+                            <i class="fas fa-tag"></i> ${task.category}
+                        </span>
+                        <span class="task-priority">
+                            <i class="fas fa-flag"></i> ${task.priority}
+                        </span>
+                        ${task.dueDate ? `
+                        <span class="task-due-date">
+                            <i class="fas fa-calendar"></i> ${task.dueDate}
+                        </span>
+                        ` : ''}
+                    </div>
+                </div>
+                <div class="task-actions">
+                    <button onclick="taskManager.editTask(${task.id})" class="edit-btn">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button onclick="taskManager.deleteTask(${task.id})" class="delete-btn">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+}
+
+// Initialize TaskManager
+const taskManager = new TaskManager();
+
+// Load theme preference
+if (localStorage.getItem('darkMode') === 'true') {
+    document.body.classList.add('dark-mode');
+}
+
+// Add CSS for notifications
+const style = document.createElement('style');
+style.textContent = `
+    .notification {
+        position: fixed;
+        bottom: -100px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--primary-color);
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: bottom 0.3s ease-in-out;
+        z-index: 1000;
+    }
+
+    .notification.show {
+        bottom: 20px;
+    }
+
+    .task-added {
+        animation: taskAdded 0.5s ease-out;
+    }
+
+    @keyframes taskAdded {
+        0% {
+            transform: translateX(-20px);
+            opacity: 0;
+        }
+        100% {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: var(--text-secondary);
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+`;
+document.head.appendChild(style);
