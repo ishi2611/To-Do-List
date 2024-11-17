@@ -1,6 +1,6 @@
 # TaskFlow Pro - Advanced Task Management System
 
-![TaskFlow Pro Banner](https://via.placeholder.com/1200x300)
+![TaskFlow Pro Banner]()
 
 ## 🌟 Overview
 
